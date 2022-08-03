@@ -1,3 +1,4 @@
+# dummy example
 # depends alpine java in docker, # execute jar file in docker, docker build -t <account/repo> .
 FROM openjdk:18-alpine
 WORKDIR /usr/src/HelloWorld
