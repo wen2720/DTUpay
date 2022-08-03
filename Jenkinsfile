@@ -4,8 +4,8 @@ pipeline {
         stage('JunitTest') {
             steps {
                 sh "cd $WORKSPACE"
-                sh "chmod u+x /script/Test.sh"
-                sh "/script/Test.sh"
+                sh "chmod u+x /script/TestJunit.sh"
+                sh "/script/TestJunit.sh"
             }
         }
     }   
