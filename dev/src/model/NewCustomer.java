@@ -15,13 +15,15 @@ public class NewCustomer extends User {
             customerName = name;
         }
     }
+    // Setters for simulating front end user has been logged in if the credential is verified, if not those would just be set as empty strings. 
+    // A valid order placement by using REST PUT is either set empty string to the user credential as new customer first time placing the order, if the token list is less than 5
     @Override
-    public String fGetName() {
+    public String fSetName() {
         return customerName;
     }
     // get name by id
     @Override
-    public String fGetUniqueId() {
+    public String fSetUniqueId() {
         return uniqueId;
     }
 
