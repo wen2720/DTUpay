@@ -28,6 +28,9 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import java.util.Random;
 import java.nio.charset.*;
 
+// ex1.5
+import java.util.UUID;  
+
 // REST API, spring framework, MVC controller
 @RestController
 @EnableAutoConfiguration
@@ -50,22 +53,24 @@ public class App {
 	Greeting hello(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new Greeting(counter.incrementAndGet(), String.format(template, name));
 	}
+	// ex.1.6
+	@GetMapping("/token")
+	RandomTokenId getOrder(@RequestParam(value="customerID") String customerId) {
+		return new RandomTokenId(UUID.randomUUID().toString());
+		// int numberOfToken = Integer.parseInt(tokenNO);
+		// if (numberOfToken < 5 && numberOfToken >=1) {
 
-	// @GetMapping("/Token")
-	// Order getOrder(@RequestParam(value="customerID") String customerId, @RequestParam(value="tokenNO") String tokenNO) {
-	// 	int numberOfToken = Integer.parseInt(tokenNO);
-	// 	if (numberOfToken < 5 && numberOfToken >=1) {
+		// } else {
 
-	// 	} else {
-
-	// 	}
-	// }
+		// }
+	}
 
     public static void main(String[] args) throws Exception {
+		// ex.1.1 spring helloword, ex1.2 spring greeting
 		// Spring framework, serving rest apis
 		// Test status: root passed, greeting 1ed passed, testing 2nd
-		//SpringApplication.run(App.class, args);
-        
+		SpringApplication.run(App.class, args);
+        // ex.1.3
 		// Manual test of QRcode class, dataEncode = QRcode Example; path = "WINDOWSFILESYSTEM"
 		// Test passed
 		// QRCode newQRcode = new QRCode(
@@ -79,9 +84,12 @@ public class App {
 		// 	100
 		// );
 		// newQRcode.fCreateQR();
-
-		RandomString newRandomString = new RandomString(210);
-		newRandomString.generateRandomString(10);
+		// ex1.4 test of RandomString class 
+		// RandomString newRandomString = new RandomString(210);
+		// newRandomString.generateRandomString(10);
+		// ex1.5 test of UUID Class
+		// RandomTokenId newRandomString = new RandomTokenId(UUID.randomUUID());
+		// System.out.println(newRandomString.fGetTokenId());
     }
 
 }
@@ -157,33 +165,14 @@ class QRCode extends Token{
 }
 // RandomString Class seeded with given numbers of byte and generate numbers of characters as required
 // Test status, working
-class RandomString {
+class RandomTokenId {
+	private final String tokenId;
+//	private UUID uuid128Bit;	//immutable, cannot instantiate
+	public RandomTokenId (String id) {
+		tokenId = id;
+	}
 
-		private byte[] byteArray; 
-		private int numberRandomBytes;
-		public RandomString(int n) {
-			try {
-				if (n <= 255 && n > 200) {
-					numberRandomBytes = n;
-					byteArray = new byte[numberRandomBytes];
-				}
-			} catch (Exception error) {
-				System.out.println("The length must be 17.");
-			}
-		} //
-		public void generateRandomString(int n) {
-			int numberOfValidCharacters = n;
-			new Random().nextBytes(byteArray);	// randomly choose bytes from the seed and convert to new string
-			String randomString = new String(byteArray, Charset.forName("UTF-8"));	// set encoding type of new string 
-			StringBuffer validString = new StringBuffer();
-			for (int k=0; k<randomString.length(); k++) {
-				char currentCharacter = randomString.charAt(k);
-				// System.out.println(currentCharacter);
-				if (((currentCharacter >= 'a' && currentCharacter <= 'z') || (currentCharacter >= 'A' && currentCharacter <= 'Z') || (currentCharacter >= '0' && currentCharacter <= '9')) && (numberOfValidCharacters > 0)) {
-					validString.append(currentCharacter);
-					numberOfValidCharacters--;
-				}
-			}
-			System.out.println(validString);
-		}
+	public String getTokenId () {
+		return tokenId;
+	}
 }
