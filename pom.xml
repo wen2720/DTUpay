@@ -5,7 +5,7 @@
   <artifactId>DTUpay</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
-  <name>DTUpayBeta</name>
+  <name>DTUpay</name>
   <url>http://maven.apache.org</url>
   <!-- Inherit defaults from Spring Boot -->
   <parent>
@@ -13,20 +13,35 @@
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>2.7.2</version>
   </parent>
-  <!-- Package as an executable jar -->
+  <!-- build life cycle -->
   <build>
+    <pluginManagement>
     <plugins>
+      <!-- Java 9 or later -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+      </plugin>
       <plugin>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
     </plugins>
+    </pluginManagement>
   </build>
+  <!-- fix Source option 5 is no longer supported. Use 7 or later.
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+  -->
   <dependencies>
+    <!-- comes with maven.zip -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13</version>
+      <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -34,10 +49,16 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.zxing/core -->
+    <dependency>
+        <groupId>com.google.zxing</groupId>
+        <artifactId>core</artifactId>
+        <version>3.5.0</version>
+    </dependency>
+    <dependency>
+        <groupId>com.google.zxing</groupId>
+        <artifactId>javase</artifactId>
+        <version>3.5.0</version>
+    </dependency>
   </dependencies>
-    <!-- fix Source option 5 is no longer supported. Use 7 or later.-->
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
 </project>
