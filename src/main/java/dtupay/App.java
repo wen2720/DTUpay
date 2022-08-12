@@ -1,16 +1,16 @@
 package dtupay;
-// ex1.1
+// ex1.1 hello world
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.bind.annotation.*;
 import java.util.concurrent.atomic.AtomicLong;
-// ex1.2
+// ex1.2 Greeting with @QueryParam
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-// ex1.3
+// ex1.3 Java QR code example
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -24,79 +24,67 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
-// ex1.4
-import java.util.Random;
-import java.nio.charset.*;
-
-// ex1.5
+// ex1.5 java uniquie ID example
 import java.util.UUID;  
 
+// ex1.6 more complicated POJO to JSON example, supported by Jackson
+import java.util.ArrayList;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.PostMapping;
 // REST API, spring framework, MVC controller
 @RestController
 @EnableAutoConfiguration
+//@SpringBootApplication
 public class App {
-	//Routings
-    @RequestMapping("/")
+	@GetMapping("/")
     String home() {
         return "Hello World!";
     }
-
-    private static final String template = "Hello, %s!";
-	private final AtomicLong counter = new AtomicLong();
-	// inherits @PATH
-	// @GetMapping("/greeting"), 1st ed
-	// Greeting hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-	// 	return new Greeting(counter.incrementAndGet(), String.format(template, name));
-	// }
-
-	@GetMapping("/greeting")
-	Greeting hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-		return new Greeting(counter.incrementAndGet(), String.format(template, name));
+	private static CustomerOrderMap customerOrderMap = new CustomerOrderMap(new HashMap<String,ArrayList<String>>());
+	// e.g. /token?customerId={ID}&noToken={TOKEN}
+	//@RequestMapping(value = "/token", method = RequestMethod.POST)
+	@RequestMapping("/token")
+	@ResponseBody
+	CustomerOrder makeOrder(@RequestParam String customerId, @RequestParam String noToken) {
+		CustomerOrder newCustomerOrder = null;
+		try {
+			int numberOfToken = Integer.parseInt(noToken);
+			// Default value test
+			// CustomerOrder newCustomerOrder = new CustomerOrder(customerId, new ArrayList<String>() {{
+			// 	add(UUID.randomUUID().toString());
+			// }});
+			// Test with logic			
+			if (numberOfToken < 6 && numberOfToken >=1) {
+				if ((customerOrderMap.database.containsKey(customerId) && customerOrderMap.database.get(customerId)==null) || !(customerOrderMap.database.containsKey(customerId))) {
+					ArrayList<String> tokenList = new ArrayList<String>() {{
+						for (int i=0; i<numberOfToken; i++){  
+							add(UUID.randomUUID().toString());
+						}
+					}};
+					customerOrderMap.database.put(customerId,tokenList);
+					newCustomerOrder = new CustomerOrder(customerId,tokenList);
+				} else {
+					throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+				}
+			} else {
+				throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+			}
+		} catch (Exception error) {
+			throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+		}
+		return newCustomerOrder;
 	}
-	// ex.1.6
-	@GetMapping("/token")
-	RandomTokenId getOrder(@RequestParam(value="customerID") String customerId) {
-		return new RandomTokenId(UUID.randomUUID().toString());
-		// int numberOfToken = Integer.parseInt(tokenNO);
-		// if (numberOfToken < 5 && numberOfToken >=1) {
-
-		// } else {
-
-		// }
-	}
-
+	
     public static void main(String[] args) throws Exception {
-		// ex.1.1 spring helloword, ex1.2 spring greeting
-		// Spring framework, serving rest apis
-		// Test status: root passed, greeting 1ed passed, testing 2nd
 		SpringApplication.run(App.class, args);
-        // ex.1.3
-		// Manual test of QRcode class, dataEncode = QRcode Example; path = "WINDOWSFILESYSTEM"
-		// Test passed
-		// QRCode newQRcode = new QRCode(
-		// 	"QRcode Example", 
-		// 	".\\photo\\qr\\example2.png",
-		// 	"UTF-8",
-		// 	new HashMap<EncodeHintType,ErrorCorrectionLevel>(){{
-		// 		put(EncodeHintType.ERROR_CORRECTION,ErrorCorrectionLevel.L);
-		// 	}},
-		// 	100,
-		// 	100
-		// );
-		// newQRcode.fCreateQR();
-		// ex1.4 test of RandomString class 
-		// RandomString newRandomString = new RandomString(210);
-		// newRandomString.generateRandomString(10);
-		// ex1.5 test of UUID Class
-		// RandomTokenId newRandomString = new RandomTokenId(UUID.randomUUID());
-		// System.out.println(newRandomString.fGetTokenId());
     }
 
 }
-// A class as type tests spring frame work; in spring framework, the return of the class instance is JSON object. Later could be seperated to other java file if manual test localhost:8080/greeting and localhost:8080/greeting?name=QUERYPARAM passes
+// In spring framework, the return of the class instance is JSON object. Later could be seperated to other java file if manual test localhost:8080/greeting and localhost:8080/greeting?name=QUERYPARAM passes
 // Test status: passed
 class Greeting {
-
+	// final fields can assigned in the constructor, statci field can be used to repsent state
 	private final long id;
 	private final String content;
 
@@ -118,6 +106,7 @@ class Greeting {
 interface IToken {
 	public void fCreateQR()throws WriterException, IOException;
 }
+// Abstract class
 abstract class Token implements IToken {
 }
 // QRCode class, later could be seperated to other java file if manual test passes.
@@ -163,16 +152,36 @@ class QRCode extends Token{
 		}
 	}
 }
-// RandomString Class seeded with given numbers of byte and generate numbers of characters as required
-// Test status, working
-class RandomTokenId {
-	private final String tokenId;
-//	private UUID uuid128Bit;	//immutable, cannot instantiate
-	public RandomTokenId (String id) {
-		tokenId = id;
-	}
 
-	public String getTokenId () {
-		return tokenId;
+// ex1.6 http POST /token?customerId={}&&no={} response class
+class CustomerOrder {
+	// <anonymous java.util.HashMap<java.lang.String,java.util.ArrayList<java.lang.String>>> cannot be converted to java.util.Map<java.lang.String,java.util.List<java.lang.String>>
+	// List<String> string1 = new ArrayList<Sting>(), this example would compile 
+	// and also constructor injection such as 
+	// class RandomClass { private List<String> newList; public RandomClass(ArrayList<String> list) {newList = list;}}
+	// RandomClass randomclass = new RandomClass(new ArrayList<String>(){{
+	//   add("123");
+    //   add("456");
+	// }})
+	// with plain java compiler, but in maven, it requires explicit type, strange
+	private final String customerId;
+	private final ArrayList<String> tokens;
+	public CustomerOrder (String id, ArrayList<String> strings) {
+		customerId = id;
+		tokens = strings;
+	}
+	public String getCustomerId() {
+		return customerId;
+	}
+	public ArrayList<String> getTokens() {
+		return tokens;
+	}
+}
+// Pre database, need to move to database
+class CustomerOrderMap {
+	public static HashMap<String,ArrayList<String>> database;
+	// return value of entry
+	public CustomerOrderMap(HashMap<String,ArrayList<String>> map) {
+		this.database = map;
 	}
 }
