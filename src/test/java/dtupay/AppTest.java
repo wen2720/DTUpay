@@ -1,28 +1,65 @@
 package dtupay;
-// maven junit test
-//import junit.framework.Test; 
-//import junit.framework.TestCase;
-//import junit.framework.TestSuite;
-// ex 1.7 mvn test REST API server source code, junit(original package,org.junit.Test) test without maven junit.framework.* package
-import org.junit.Test;                          //junit test 4.13.2 from junit
+// maven junit test belonging packages
+// import junit.framework.Test; 
+// import junit.framework.TestCase;
+// import junit.framework.TestSuite;
+// ex 1.7 mvn test server REST API controller class constructor
+// junit test 4.13.2 from junit
+// import org.junit.Test;                          
 import static org.junit.Assert.assertNotEquals; //
-//import org.springframework.boot.test.context.SpringBootTest; //@SpringBootApplication @SpringBootTest annotation to mark under test java class and test class
-// look for entry point main function in java class
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
+// try to use junit assert instead of assertj
+import static org.junit.Assert.assertEquals;
+
+// spring-boot-starter-test in pom
+import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+
+
+//java class
 import java.net.URI;
-import java.net.http.HttpResponse;
-//@SpringBootTest
+import org.springframework.http.HttpHeaders;    //spring HttpHeaders
+import org.springframework.boot.test.web.client.TestRestTemplate;   //spring HttpClient
+import org.springframework.http.HttpEntity; // spring HttpEntity
+import org.springframework.http.MediaType; // spring MediaType extends org.springframework.util.MimeType
+
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class AppTest {
-    private App newApp; // maven figure out the import of class package "magically"
-    HttpClient newClient = HttpClient.newHttpClient();
+    
+    @LocalServerPort
+	private int port;
+
+	@Autowired
+	private TestRestTemplate restTemplate;
+
+    // spring function getForObject
     @Test
-    public void pClassDependency() throws Exception {
-        HttpRequest newRequest = HttpRequest.newBuilder().uri(new URI("http://localhost:8080/token?customerId=123&noToken=2")).GET().build();
-        newClient.sendAsync(newRequest, HttpResponse.BodyHandlers.ofString());
-    }
+	public void greetingShouldReturnDefaultMessage() throws Exception {
+		assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/", String.class)).contains("Hello World");
+	}
+    
+
     @Test
-    public void pPostToken(){
-        
-    }
+	public void pPostTokenCorectness() throws Exception {
+        // spring function postForObject
+        // URI
+        URI theUri = URI.create("http://localhost:" + port);
+        // HttpHeaders class
+        HttpHeaders headers = new HttpHeaders();
+	    headers.setContentType(MediaType.APPLICATION_JSON);
+        // URI class
+        // <HomeMade> class
+        CustomerOrder newCustomerOrder = new CustomerOrder("123","2");
+        // HttpEntity 
+        HttpEntity<CustomerOrder> entityCustomerOrder = new HttpEntity<>(newCustomerOrder, headers);
+        // postForObject(<URI>,<HttpEntity>,<TheReturnClass>)
+        CustomerOrderResponse newCustomerOrderResponse = this.restTemplate.postForObject((theUri+"/token"),entityCustomerOrder, CustomerOrderResponse.class);
+        // getForObject(<URI>,<TheReturnClass>)
+        CustomerOrderResponse oldCustomerOrderResponse = this.restTemplate.getForObject((theUri+"/token?newCustomerId=123"),CustomerOrderResponse.class);
+        assertEquals(newCustomerOrderResponse.getCustomerId(),oldCustomerOrderResponse.getCustomerId());
+        assertEquals(newCustomerOrderResponse.getTokens(),oldCustomerOrderResponse.getTokens());
+	}
 }

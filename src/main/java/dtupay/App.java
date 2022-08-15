@@ -35,71 +35,71 @@ import org.springframework.web.bind.annotation.PostMapping;
 // REST API, spring framework, MVC controller
 @RestController
 @EnableAutoConfiguration
-//@SpringBootApplication
+@SpringBootApplication
 public class App {
 	@GetMapping("/")
     String home() {
         return "Hello World!";
     }
+	@PostMapping("/simplePostFromServer") 
+	String postWelcomMessage(@RequestBody String name){
+		return "Welcome, " + name + " to the server.";
+	}
 	private static CustomerOrderMap customerOrderMap = new CustomerOrderMap(new HashMap<String,ArrayList<String>>());
+	@GetMapping("/token")
+	CustomerOrderResponse checkOrder(@RequestParam String newCustomerId) {
+		CustomerOrderResponse newCustomerOrderResposnse = null;
+		try {
+			if (customerOrderMap.database.containsKey(newCustomerId)) {
+				newCustomerOrderResposnse = new CustomerOrderResponse(newCustomerId,customerOrderMap.database.get(newCustomerId));
+			} else {
+				throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+			}
+		} catch (Exception error) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		}
+		return newCustomerOrderResposnse;
+	}
 	// e.g. /token?customerId={ID}&noToken={TOKEN}
 	//@RequestMapping(value = "/token", method = RequestMethod.POST)
-	@RequestMapping("/token")
-	@ResponseBody
-	CustomerOrder makeOrder(@RequestParam String customerId, @RequestParam String noToken) {
-		CustomerOrder newCustomerOrder = null;
+	@PostMapping("/token")
+	// @RequestParam is for HTTP GET method
+	CustomerOrderResponse makeOrder(@RequestBody CustomerOrder newCustomerOrder) {
+		CustomerOrderResponse newCustomerOrderResposnse = null; 
 		try {
-			int numberOfToken = Integer.parseInt(noToken);
+			int numberOfToken = newCustomerOrder.getNoToken();
+			String newCustomerId = newCustomerOrder.getCustomerId();
 			// Default value test
 			// CustomerOrder newCustomerOrder = new CustomerOrder(customerId, new ArrayList<String>() {{
 			// 	add(UUID.randomUUID().toString());
 			// }});
 			// Test with logic			
 			if (numberOfToken < 6 && numberOfToken >=1) {
-				if ((customerOrderMap.database.containsKey(customerId) && customerOrderMap.database.get(customerId)==null) || !(customerOrderMap.database.containsKey(customerId))) {
+				if ((customerOrderMap.database.containsKey(newCustomerId) && customerOrderMap.database.get(newCustomerId)==null) || !(customerOrderMap.database.containsKey(newCustomerId))) {
 					ArrayList<String> tokenList = new ArrayList<String>() {{
 						for (int i=0; i<numberOfToken; i++){  
 							add(UUID.randomUUID().toString());
 						}
 					}};
-					customerOrderMap.database.put(customerId,tokenList);
-					newCustomerOrder = new CustomerOrder(customerId,tokenList);
+					customerOrderMap.database.put(newCustomerId,tokenList);
+					newCustomerOrderResposnse = new CustomerOrderResponse(newCustomerId,tokenList);
 				} else {
+					// spring HttpStatus https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.html
 					throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
 				}
 			} else {
 				throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
 			}
 		} catch (Exception error) {
-			throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 		}
-		return newCustomerOrder;
+		return newCustomerOrderResposnse;
 	}
 	
     public static void main(String[] args) throws Exception {
 		SpringApplication.run(App.class, args);
     }
 
-}
-// In spring framework, the return of the class instance is JSON object. Later could be seperated to other java file if manual test localhost:8080/greeting and localhost:8080/greeting?name=QUERYPARAM passes
-// Test status: passed
-class Greeting {
-	// final fields can assigned in the constructor, statci field can be used to repsent state
-	private final long id;
-	private final String content;
-
-	public Greeting(long id, String content) {
-		this.id = id;
-		this.content = content;
-	}
-	// The following function is for unit testing 
-	public long getId() {
-		return id;
-	}
-
-	public String getContent() {
-		return content;
-	}
 }
 
 // Interface
@@ -153,7 +153,7 @@ class QRCode extends Token{
 	}
 }
 
-// ex1.6 http POST /token?customerId={}&&no={} response class
+// ex1.6 http POST /token?customerId={}&&no={} response class // client side class
 class CustomerOrder {
 	// <anonymous java.util.HashMap<java.lang.String,java.util.ArrayList<java.lang.String>>> cannot be converted to java.util.Map<java.lang.String,java.util.List<java.lang.String>>
 	// List<String> string1 = new ArrayList<Sting>(), this example would compile 
@@ -165,10 +165,25 @@ class CustomerOrder {
 	// }})
 	// with plain java compiler, but in maven, it requires explicit type, strange
 	private final String customerId;
-	private final ArrayList<String> tokens;
-	public CustomerOrder (String id, ArrayList<String> strings) {
+	private final String noToken;
+	public CustomerOrder (String id, String number) {
 		customerId = id;
-		tokens = strings;
+		noToken = number;
+	}
+	public String getCustomerId() {
+		return customerId;
+	}
+	public int getNoToken() {
+		return Integer.parseInt(noToken);
+	}
+}
+// Serverside response data 
+class CustomerOrderResponse {
+	private final String customerId;
+	private final ArrayList<String> tokens;
+	CustomerOrderResponse (String id, ArrayList<String> list){
+		customerId = id;
+		tokens = list;
 	}
 	public String getCustomerId() {
 		return customerId;
