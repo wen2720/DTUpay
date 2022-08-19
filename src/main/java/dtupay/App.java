@@ -1,11 +1,11 @@
 package dtupay;
-// ex1.1 hello world
+// ex1.1 hello world, spring boot beginner package
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.bind.annotation.*;
 import java.util.concurrent.atomic.AtomicLong;
-// ex1.2 Greeting with @QueryParam
+// ex1.2 @QueryParam, GetMapping and MVC controller
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,16 +27,33 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 // ex1.5 java uniquie ID example
 import java.util.UUID;  
 
-// ex1.6 more complicated POJO to JSON example, supported by Jackson
+// ex1.6 more complicated POJO to JSON example, supported by Jackson, http status and PostMapping(POST)
 import java.util.ArrayList;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.PostMapping;
+
+// ex.1.8 Database Postgre sql
+import java.text.StringCharacterIterator;
+import java.text.CharacterIterator;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
+import java.util.stream.Stream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.sql.ResultSet;
 // REST API, spring framework, MVC controller
 @RestController
 @EnableAutoConfiguration
 @SpringBootApplication
 public class App {
+	//private static CustomerOrderMap customerOrderMap = new CustomerOrderMap(new HashMap<String,ArrayList<String>>());
+	private static IDatabase customerOrderMap = new CustomerOrderMap();
+
 	@GetMapping("/")
     String home() {
         return "Hello World!";
@@ -45,13 +62,12 @@ public class App {
 	String postWelcomMessage(@RequestBody String name){
 		return "Welcome, " + name + " to the server.";
 	}
-	private static CustomerOrderMap customerOrderMap = new CustomerOrderMap(new HashMap<String,ArrayList<String>>());
 	@GetMapping("/token")
 	CustomerOrderResponse checkOrder(@RequestParam String newCustomerId) {
 		CustomerOrderResponse newCustomerOrderResposnse = null;
 		try {
-			if (customerOrderMap.database.containsKey(newCustomerId)) {
-				newCustomerOrderResposnse = new CustomerOrderResponse(newCustomerId,customerOrderMap.database.get(newCustomerId));
+			if (customerOrderMap.getDataBase().containsKey(newCustomerId)) {
+				newCustomerOrderResposnse = new CustomerOrderResponse(newCustomerId,customerOrderMap.getDataBase().get(newCustomerId));
 			} else {
 				throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
 			}
@@ -68,20 +84,15 @@ public class App {
 		CustomerOrderResponse newCustomerOrderResposnse = null; 
 		try {
 			int numberOfToken = newCustomerOrder.getNoToken();
-			String newCustomerId = newCustomerOrder.getCustomerId();
-			// Default value test
-			// CustomerOrder newCustomerOrder = new CustomerOrder(customerId, new ArrayList<String>() {{
-			// 	add(UUID.randomUUID().toString());
-			// }});
-			// Test with logic			
+			String newCustomerId = newCustomerOrder.getCustomerId();		
 			if (numberOfToken < 6 && numberOfToken >=1) {
-				if ((customerOrderMap.database.containsKey(newCustomerId) && customerOrderMap.database.get(newCustomerId)==null) || !(customerOrderMap.database.containsKey(newCustomerId))) {
+				if ((customerOrderMap.getDataBase().containsKey(newCustomerId) && customerOrderMap.getDataBase().get(newCustomerId)==null) || !(customerOrderMap.getDataBase().containsKey(newCustomerId))) {
 					ArrayList<String> tokenList = new ArrayList<String>() {{
 						for (int i=0; i<numberOfToken; i++){  
 							add(UUID.randomUUID().toString());
 						}
 					}};
-					customerOrderMap.database.put(newCustomerId,tokenList);
+					customerOrderMap.getDataBase().put(newCustomerId,tokenList);
 					newCustomerOrderResposnse = new CustomerOrderResponse(newCustomerId,tokenList);
 				} else {
 					// spring HttpStatus https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.html
@@ -96,22 +107,55 @@ public class App {
 		return newCustomerOrderResposnse;
 	}
 	
+	// REST constoller entry point
     public static void main(String[] args) throws Exception {
+		//Postgre SQL database 
+		String postgreCredentialPath = System.getenv("Postgre_Credential");									// get windows system enviroment entry value by variable
+		CharacterIterator iteratorPostgreCredential = new StringCharacterIterator(postgreCredentialPath);	// string to collection of characters
+		String newPostgreCredentialPath = "";																// empty place holder 
+		while(iteratorPostgreCredential.current() != CharacterIterator.DONE) {								// resolve windows path backslah with adding escape '\'
+			if (iteratorPostgreCredential.current() == '\\'){												
+				newPostgreCredentialPath +=  iteratorPostgreCredential.current() + "\\";					
+			} else {
+				newPostgreCredentialPath += iteratorPostgreCredential.current();
+			}
+			iteratorPostgreCredential.next();
+		}
+		// System.out.println("resolved windows path for java : "  + newPostgreCredentialPath);
+		String postgreCredentialFile = newPostgreCredentialPath + "\\pgpass.conf";							// postgre credential file
+		Path postgreCredentialFilePath = Path.of(postgreCredentialFile);									// construct path regarding the file system 
+		String pgpassFileContent = Files.readString(postgreCredentialFilePath);								// readfirst line of the string, quick version should be improved.  Only the content [hostname:port:database:username:password] is allowed, # is the ignore symbol 
+		String[] pgpassElements = pgpassFileContent.split(":",5);
+		// for (String element : pgpassElements) {
+		// 	System.out.println(element);
+		// }
+		String postgreUrl = "jdbc:postgresql://" + pgpassElements[0] + ":" + pgpassElements[1] + "/" + pgpassElements[2];
+		Properties props = new Properties();																// constructing entries
+		props.setProperty("user", pgpassElements[3]);
+		props.setProperty("password", pgpassElements[4]);
+		// data base connection
+		Connection newConnection = DriverManager.getConnection(postgreUrl, props);
+
+		Statement newStatement = newConnection.createStatement();
+		// Query		
+		// ResultSet newResultSet = newStatement.executeQuery("SElECT * FROM ordertoken");
+		// while (newResultSet.next()){
+		// 	System.out.print("a row was returned.");
+		// }
+		// newResultSet.close();
+		// Create Table
+		newStatement.execute("CREATE TABLE IF NOT EXISTS customer_tokens (customer_id VARCHAR(50) PRIMARY KEY, token0 VARCHAR(100) NOT NULL, token1 VARCHAR(100) NOT NULL, token2 VARCHAR(100) NOT NULL, token3 VARCHAR(100) NOT NULL, token4 VARCHAR(100) NOT NULL)");
+		newStatement.close();
+				
+		// App newApp = new App(new CustomerOrderMap());  // Parameter 0 of constructor in dtupay.App required a bean of type 'dtupay.IDatabase' that could not be found.
 		SpringApplication.run(App.class, args);
     }
 
 }
 
-// Interface
-interface IToken {
-	public void fCreateQR()throws WriterException, IOException;
-}
-// Abstract class
-abstract class Token implements IToken {
-}
 // QRCode class, later could be seperated to other java file if manual test passes.
 // Test passed, can be used in client device for generating QRcode the data recieved from server.
-class QRCode extends Token{
+class QRCode {
     private String dataEncode;
     private String pathPhoto;
     private String formatEncode;
@@ -130,8 +174,6 @@ class QRCode extends Token{
 	public String getTokenId() {
 		return dataEncode;
 	}
-	// Override super class and interface, Function to create QRcode and photo
-	@Override
 	public void fCreateQR() throws WriterException, IOException {
 		try {
 			BitMatrix bitMatrix = 
@@ -153,17 +195,9 @@ class QRCode extends Token{
 	}
 }
 
-// ex1.6 http POST /token?customerId={}&&no={} response class // client side class
+// Data model too form HTTP POST Request body
+// ex1.6 http POST /token?customerId={}&&no={}  // client side class
 class CustomerOrder {
-	// <anonymous java.util.HashMap<java.lang.String,java.util.ArrayList<java.lang.String>>> cannot be converted to java.util.Map<java.lang.String,java.util.List<java.lang.String>>
-	// List<String> string1 = new ArrayList<Sting>(), this example would compile 
-	// and also constructor injection such as 
-	// class RandomClass { private List<String> newList; public RandomClass(ArrayList<String> list) {newList = list;}}
-	// RandomClass randomclass = new RandomClass(new ArrayList<String>(){{
-	//   add("123");
-    //   add("456");
-	// }})
-	// with plain java compiler, but in maven, it requires explicit type, strange
 	private final String customerId;
 	private final String noToken;
 	public CustomerOrder (String id, String number) {
@@ -177,6 +211,8 @@ class CustomerOrder {
 		return Integer.parseInt(noToken);
 	}
 }
+
+// Response class for HTTP POST
 // Serverside response data 
 class CustomerOrderResponse {
 	private final String customerId;
@@ -192,11 +228,27 @@ class CustomerOrderResponse {
 		return tokens;
 	}
 }
-// Pre database, need to move to database
-class CustomerOrderMap {
-	public static HashMap<String,ArrayList<String>> database;
+
+// DataSet classes
+interface IDatabase {
+	public HashMap<String,ArrayList<String>> getDataBase();
+}
+abstract class DataBase implements IDatabase {
+}
+
+// Database, hashmap implementation
+class CustomerOrderMap extends DataBase {
+	private static HashMap<String,ArrayList<String>> database = new HashMap<String,ArrayList<String>>();
 	// return value of entry
-	public CustomerOrderMap(HashMap<String,ArrayList<String>> map) {
-		this.database = map;
+	// public CustomerOrderMap(HashMap<String,ArrayList<String>> map) {
+	// 	this.database = map;
+	// }
+	@Override
+	public HashMap<String,ArrayList<String>> getDataBase() {
+		return database;
 	}
 }
+
+// database connection, with credential
+
+// Database, PostgreSQL implementation
