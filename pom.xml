@@ -17,7 +17,7 @@
   <build>
     <pluginManagement>
     <plugins>
-      <!-- Java 9 or later -->
+      <!-- maven java compiler, Java 9 or later -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -30,12 +30,10 @@
     </plugins>
     </pluginManagement>
   </build>
-  <!-- fix Source option 5 is no longer supported. Use 7 or later.
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-  -->
   <dependencies>
     <!-- comes with maven.zip -->
     <dependency>
@@ -45,7 +43,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <!-- Import dependency management from Spring Boot -->
+      <!-- spring java from Spring Boot for web applicatin, thanks to the library which sets the tomcat server (the middle ware) to use java http class  -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
@@ -66,6 +64,13 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <version>2.7.2</version>
       <scope>test</scope>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.4.1</version>
     </dependency>
   </dependencies>
 </project>
