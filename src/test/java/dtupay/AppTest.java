@@ -56,9 +56,9 @@ public class AppTest {
         // HttpEntity 
         HttpEntity<CustomerOrder> entityCustomerOrder = new HttpEntity<>(newCustomerOrder, headers);
         // postForObject(<URI>,<HttpEntity>,<TheReturnClass>)
-        CustomerOrderResponse newCustomerOrderResponse = this.restTemplate.postForObject((theUri+"/token"),entityCustomerOrder, CustomerOrderResponse.class);
+        CustomerOrderResponse newCustomerOrderResponse = this.restTemplate.postForObject((theUri+"/customer_token"),entityCustomerOrder, CustomerOrderResponse.class);
         // getForObject(<URI>,<TheReturnClass>)
-        CustomerOrderResponse oldCustomerOrderResponse = this.restTemplate.getForObject((theUri+"/token?newCustomerId=123"),CustomerOrderResponse.class);
+        CustomerOrderResponse oldCustomerOrderResponse = this.restTemplate.getForObject((theUri+"/customer_token?newCustomerId=123"),CustomerOrderResponse.class);
         assertEquals(newCustomerOrderResponse.getCustomerId(),oldCustomerOrderResponse.getCustomerId());
         assertEquals(newCustomerOrderResponse.getTokens(),oldCustomerOrderResponse.getTokens());
 	}

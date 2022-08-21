@@ -1,5 +1,6 @@
 package dtupay;
 // ex1.1 hello world, spring boot beginner package
+import dtupay.CustomerTokenRepostitory;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
 import org.springframework.stereotype.*;
@@ -46,13 +47,30 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.ResultSet;
+
+// ex.1.9 JPA sring Crud Repository
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Id;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.slf4j.Logger;	// for loggin server events
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;	// mark the method with returning certain class
+import org.springframework.context.annotation.Configuration; // @Beans are declared in the @Configuration class
+
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
 // REST API, spring framework, MVC controller
 @RestController
 @EnableAutoConfiguration
 @SpringBootApplication
 public class App {
-	//private static CustomerOrderMap customerOrderMap = new CustomerOrderMap(new HashMap<String,ArrayList<String>>());
-	private static IDatabase customerOrderMap = new CustomerOrderMap();
+	// private static IDataBase customerTokenMap = new CustomerTokenMap();																				// allocate memory in fileld
+	// private static IDataBase<HashMap<String,ArrayList<String>>> customerTokenMap = new CustomerTokenMap<>(new HashMap<String,ArrayList<String>>());	// allocaate memory by constructor in jection
+	// private static Map<String,ArrayList<String>> customerTokenMap = new HashMap<>();
+	private CustomerTokenRepostitory theRepository;
 
 	@GetMapping("/")
     String home() {
@@ -62,95 +80,64 @@ public class App {
 	String postWelcomMessage(@RequestBody String name){
 		return "Welcome, " + name + " to the server.";
 	}
-	@GetMapping("/token")
-	CustomerOrderResponse checkOrder(@RequestParam String newCustomerId) {
-		CustomerOrderResponse newCustomerOrderResposnse = null;
-		try {
-			if (customerOrderMap.getDataBase().containsKey(newCustomerId)) {
-				newCustomerOrderResposnse = new CustomerOrderResponse(newCustomerId,customerOrderMap.getDataBase().get(newCustomerId));
-			} else {
-				throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
-			}
-		} catch (Exception error) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-		}
-		return newCustomerOrderResposnse;
+	// api with map 
+	// @GetMapping("/customer_token")
+	// CustomerOrderResponse checkOrder(@RequestParam String newCustomerId) {
+	// 	CustomerOrderResponse newCustomerOrderResposnse = null;
+	// 	try {
+	// 		if (customerTokenMap.containsKey(newCustomerId)) {
+	// 			newCustomerOrderResposnse = new CustomerOrderResponse(newCustomerId,customerTokenMap.get(newCustomerId));
+	// 		} else {
+	// 			throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+	// 		}
+	// 	} catch (Exception error) {
+	// 		throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+	// 	}
+	// 	return newCustomerOrderResposnse;
+	// }
+	@GetMapping("/customer_token")
+	List<CustomerOrderResponse> checkAllCustomerToken() {
+		return theRepository.findAll();
 	}
 	// e.g. /token?customerId={ID}&noToken={TOKEN}
 	//@RequestMapping(value = "/token", method = RequestMethod.POST)
-	@PostMapping("/token")
-	// @RequestParam is for HTTP GET method
-	CustomerOrderResponse makeOrder(@RequestBody CustomerOrder newCustomerOrder) {
-		CustomerOrderResponse newCustomerOrderResposnse = null; 
-		try {
-			int numberOfToken = newCustomerOrder.getNoToken();
-			String newCustomerId = newCustomerOrder.getCustomerId();		
-			if (numberOfToken < 6 && numberOfToken >=1) {
-				if ((customerOrderMap.getDataBase().containsKey(newCustomerId) && customerOrderMap.getDataBase().get(newCustomerId)==null) || !(customerOrderMap.getDataBase().containsKey(newCustomerId))) {
-					ArrayList<String> tokenList = new ArrayList<String>() {{
-						for (int i=0; i<numberOfToken; i++){  
-							add(UUID.randomUUID().toString());
-						}
-					}};
-					customerOrderMap.getDataBase().put(newCustomerId,tokenList);
-					newCustomerOrderResposnse = new CustomerOrderResponse(newCustomerId,tokenList);
-				} else {
-					// spring HttpStatus https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.html
-					throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
-				}
-			} else {
-				throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
-			}
-		} catch (Exception error) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-		}
-		return newCustomerOrderResposnse;
-	}
+	// @PostMapping("/customer_token")
+	// // @RequestParam is for HTTP GET method
+	// CustomerOrderResponse makeOrder(@RequestBody CustomerOrder newCustomerOrder) {
+	// 	CustomerOrderResponse newCustomerOrderResposnse = null; 
+	// 	try {
+	// 		int numberOfToken = newCustomerOrder.getNoToken();
+	// 		String newCustomerId = newCustomerOrder.getCustomerId();		
+	// 		if (numberOfToken < 6 && numberOfToken >=1) {
+	// 			if ((customerTokenMap.containsKey(newCustomerId) && customerTokenMap.get(newCustomerId)==null) || !(customerTokenMap.containsKey(newCustomerId))) {
+	// 				ArrayList<String> tokenList = new ArrayList<String>() {{
+	// 					for (int i=0; i<numberOfToken; i++){  
+	// 						add(UUID.randomUUID().toString());
+	// 					}
+	// 				}};
+	// 				customerTokenMap.put(newCustomerId,tokenList);
+	// 				newCustomerOrderResposnse = new CustomerOrderResponse(newCustomerId,tokenList);
+	// 			} else {
+	// 				// spring HttpStatus https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.html
+	// 				throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+	// 			}
+	// 		} else {
+	// 			throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+	// 		}
+	// 	} catch (Exception error) {
+	// 		throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+	// 	}
+	// 	return newCustomerOrderResposnse;
+	// }
 	
 	// REST constoller entry point
-    public static void main(String[] args) throws Exception {
-		//Postgre SQL database 
-		String postgreCredentialPath = System.getenv("Postgre_Credential");									// get windows system enviroment entry value by variable
-		CharacterIterator iteratorPostgreCredential = new StringCharacterIterator(postgreCredentialPath);	// string to collection of characters
-		String newPostgreCredentialPath = "";																// empty place holder 
-		while(iteratorPostgreCredential.current() != CharacterIterator.DONE) {								// resolve windows path backslah with adding escape '\'
-			if (iteratorPostgreCredential.current() == '\\'){												
-				newPostgreCredentialPath +=  iteratorPostgreCredential.current() + "\\";					
-			} else {
-				newPostgreCredentialPath += iteratorPostgreCredential.current();
-			}
-			iteratorPostgreCredential.next();
-		}
-		// System.out.println("resolved windows path for java : "  + newPostgreCredentialPath);
-		String postgreCredentialFile = newPostgreCredentialPath + "\\pgpass.conf";							// postgre credential file
-		Path postgreCredentialFilePath = Path.of(postgreCredentialFile);									// construct path regarding the file system 
-		String pgpassFileContent = Files.readString(postgreCredentialFilePath);								// readfirst line of the string, quick version should be improved.  Only the content [hostname:port:database:username:password] is allowed, # is the ignore symbol 
-		String[] pgpassElements = pgpassFileContent.split(":",5);
-		// for (String element : pgpassElements) {
-		// 	System.out.println(element);
-		// }
-		String postgreUrl = "jdbc:postgresql://" + pgpassElements[0] + ":" + pgpassElements[1] + "/" + pgpassElements[2];
-		Properties props = new Properties();																// constructing entries
-		props.setProperty("user", pgpassElements[3]);
-		props.setProperty("password", pgpassElements[4]);
-		// data base connection
-		Connection newConnection = DriverManager.getConnection(postgreUrl, props);
+	public static void main(String[] args) throws Exception {
 
-		Statement newStatement = newConnection.createStatement();
-		// Query		
-		// ResultSet newResultSet = newStatement.executeQuery("SElECT * FROM ordertoken");
-		// while (newResultSet.next()){
-		// 	System.out.print("a row was returned.");
-		// }
-		// newResultSet.close();
-		// Create Table
-		newStatement.execute("CREATE TABLE IF NOT EXISTS customer_tokens (customer_id VARCHAR(50) PRIMARY KEY, token0 VARCHAR(100) NOT NULL, token1 VARCHAR(100) NOT NULL, token2 VARCHAR(100) NOT NULL, token3 VARCHAR(100) NOT NULL, token4 VARCHAR(100) NOT NULL)");
-		newStatement.close();
-				
+		// PostgreConnection newPostgreConnection = new PostgreConnection(new PostgreUrlAndCredential(new Properties()));
+						
 		// App newApp = new App(new CustomerOrderMap());  // Parameter 0 of constructor in dtupay.App required a bean of type 'dtupay.IDatabase' that could not be found.
 		SpringApplication.run(App.class, args);
     }
-
 }
 
 // QRCode class, later could be seperated to other java file if manual test passes.
@@ -214,41 +201,134 @@ class CustomerOrder {
 
 // Response class for HTTP POST
 // Serverside response data 
+// class CustomerOrderResponse {
+// 	private final String customerId;
+// 	private final ArrayList<String> tokens;
+// 	CustomerOrderResponse (String id, ArrayList<String> list){
+// 		customerId = id;
+// 		tokens = list;
+// 	}
+// 	public String getCustomerId() {
+// 		return customerId;
+// 	}
+// 	public ArrayList<String> getTokens() {
+// 		return tokens;
+// 	}
+// }
+@Entity
+@Table(name = "customer_token")
 class CustomerOrderResponse {
-	private final String customerId;
-	private final ArrayList<String> tokens;
-	CustomerOrderResponse (String id, ArrayList<String> list){
+	@Id
+	private String customerId;
+	private String[] tokens;
+	CustomerOrderResponse() {}
+	CustomerOrderResponse (String id, String[] list){
 		customerId = id;
 		tokens = list;
 	}
 	public String getCustomerId() {
 		return customerId;
 	}
-	public ArrayList<String> getTokens() {
+	public String[] getTokens() {
 		return tokens;
 	}
 }
-
-// DataSet classes
-interface IDatabase {
-	public HashMap<String,ArrayList<String>> getDataBase();
+// @Repository
+interface CustomerTokenRepostitory extends JpaRepository<CustomerOrderResponse, String> {
 }
-abstract class DataBase implements IDatabase {
+// DataSet classes; interface, abstract class and inheritance
+// interface = Class<TypeVariable>
+// interface IDataBase<T> {
+// 	public T getDataBase();
+// 	public boolean containsKey();
+// }
+// // abstract class DataBase<T> implements IDataBase<T> {
+// // }
+// // Database, hashmap implementation
+// class CustomerTokenMap<T> implements DataBase<T> {
+// 	private T dataset;	//hides constructor parameter, or function parameter
+// 	public CustomerTokenMap(T dataset) {
+// 		this.dataset = dataset;
+// 	}
+// 	public T getDataBase() {
+// 		return this.dataset;
+// 	}
+// }
+// Database, PostgreSQL implementation
+interface IDataBaseConnection {
 }
+abstract class DataBaseConnection implements IDataBaseConnection {
+}
+class PostgreUrlAndCredential {
+	private static String postgreUrl;
+	private static Properties postgreCredentialProperties;
 
-// Database, hashmap implementation
-class CustomerOrderMap extends DataBase {
-	private static HashMap<String,ArrayList<String>> database = new HashMap<String,ArrayList<String>>();
-	// return value of entry
-	// public CustomerOrderMap(HashMap<String,ArrayList<String>> map) {
-	// 	this.database = map;
-	// }
-	@Override
-	public HashMap<String,ArrayList<String>> getDataBase() {
-		return database;
+	public PostgreUrlAndCredential(Properties newProperties) throws Exception {
+		postgreCredentialProperties = newProperties;
+		setPostgreUrlAndProperties("Postgre_Credential");
+	}
+		
+	public String getPostgreUrl() {
+		return this.postgreUrl;
+	}
+	public Properties getPostgrePorperties() {
+		return this.postgreCredentialProperties;
+	}
+
+	private void setPostgreUrlAndProperties(String credentialPath) throws Exception {
+		// // The following program is for connecting postgres with default conredential file, has been test in the main function
+		// // Properties postgreCredentialProperties = new Properties()					
+		String postgreCredentialPath = System.getenv(credentialPath);									// get windows system enviroment entry value by variable, my path
+		CharacterIterator characterSequence = new StringCharacterIterator(postgreCredentialPath);	// string to collection of characters
+		postgreCredentialPath = "";																// empty place holder 
+		while(characterSequence.current() != CharacterIterator.DONE) {								// resolve windows path backslah with adding escape '\'
+			if (characterSequence.current() == '\\'){												
+				postgreCredentialPath +=  characterSequence.current() + "\\";					
+			} else {
+				postgreCredentialPath += characterSequence.current();
+			}
+			characterSequence.next();
+		}
+		// // System.out.println("resolved windows path for java : "  + postgreCredentialPath);
+		Path postgreCredentialFilePath = Path.of(postgreCredentialPath + "\\pgpass.conf");					// pgpass.conf default postgre credential file name. construct path regarding the file system 
+		String pgpassFileContent = Files.readString(postgreCredentialFilePath);								// readfirst line of the string, quick version should be improved.  Only the content [hostname:port:database:username:password] is allowed, # is the ignore symbol 
+		String[] pgpassElements = pgpassFileContent.split(":",5);
+		// // for (String element : pgpassElements) {
+		// // 	System.out.println(element);
+		// // }
+		postgreUrl = "jdbc:postgresql://" + pgpassElements[0] + ":" + pgpassElements[1] + "/" + pgpassElements[2];															// constructing entries
+		postgreCredentialProperties.setProperty("user", pgpassElements[3]);
+		postgreCredentialProperties.setProperty("password", pgpassElements[4]);
+
+		// data base connection
+		// // Connection newConnection = DriverManager.getConnection(postgreUrl, props);
+
+		// Statement newStatement = newConnection.createStatement();
+		// // Query		
+		// // ResultSet newResultSet = newStatement.executeQuery("SElECT * FROM ordertoken");
+		// // while (newResultSet.next()){
+		// // 	System.out.print("a row was returned.");
+		// // }
+		// // newResultSet.close();
+		// // Create Table
+		// newStatement.execute("CREATE TABLE IF NOT EXISTS customer_tokens (customer_id VARCHAR(50) PRIMARY KEY, token0 VARCHAR(100) NOT NULL, token1 VARCHAR(100) NOT NULL, token2 VARCHAR(100) NOT NULL, token3 VARCHAR(100) NOT NULL, token4 VARCHAR(100) NOT NULL)");
+		// newStatement.close();
+	}
+		
+}
+// database connection, with credential
+class PostgreConnection {
+	private static Connection newConnection;
+	private PostgreUrlAndCredential defaultPostgreUrlAndProperties;
+	//Postgre SQL database 
+
+	public PostgreConnection(PostgreUrlAndCredential newProperties){
+		defaultPostgreUrlAndProperties = newProperties;
+	}
+
+	public Connection getPostgreConnection() throws Exception {
+		newConnection = DriverManager.getConnection(this.defaultPostgreUrlAndProperties.getPostgreUrl(),this.defaultPostgreUrlAndProperties.getPostgrePorperties());
+		return newConnection;
 	}
 }
 
-// database connection, with credential
-
-// Database, PostgreSQL implementation
