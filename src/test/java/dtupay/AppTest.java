@@ -42,24 +42,24 @@ public class AppTest {
 	}
     
 
-    @Test
-	public void pPostTokenCorectness() throws Exception {
-        // spring function postForObject
-        // URI
-        URI theUri = URI.create("http://localhost:" + port);
-        // HttpHeaders class
-        HttpHeaders headers = new HttpHeaders();
-	    headers.setContentType(MediaType.APPLICATION_JSON);
-        // URI class
-        // <HomeMade> class
-        CustomerOrder newCustomerOrder = new CustomerOrder("123","2");
-        // HttpEntity 
-        HttpEntity<CustomerOrder> entityCustomerOrder = new HttpEntity<>(newCustomerOrder, headers);
-        // postForObject(<URI>,<HttpEntity>,<TheReturnClass>)
-        CustomerOrderResponse newCustomerOrderResponse = this.restTemplate.postForObject((theUri+"/customer_token"),entityCustomerOrder, CustomerOrderResponse.class);
-        // getForObject(<URI>,<TheReturnClass>)
-        CustomerOrderResponse oldCustomerOrderResponse = this.restTemplate.getForObject((theUri+"/customer_token?newCustomerId=123"),CustomerOrderResponse.class);
-        assertEquals(newCustomerOrderResponse.getCustomerId(),oldCustomerOrderResponse.getCustomerId());
-        assertEquals(newCustomerOrderResponse.getTokens(),oldCustomerOrderResponse.getTokens());
-	}
+    // @Test
+	// public void pPostTokenCorectness() throws Exception {
+    //     // spring function postForObject
+    //     // URI
+    //     URI theUri = URI.create("http://localhost:" + port);
+    //     // HttpHeaders class
+    //     HttpHeaders headers = new HttpHeaders();
+	//     headers.setContentType(MediaType.APPLICATION_JSON);
+    //     // URI class
+    //     // <HomeMade> class
+    //     CustomerOrder newCustomerOrder = new CustomerOrder("123","2");
+    //     // HttpEntity 
+    //     HttpEntity<CustomerOrder> entityCustomerOrder = new HttpEntity<>(newCustomerOrder, headers);
+    //     // postForObject(<URI>,<HttpEntity>,<TheReturnClass>)
+    //     CustomerOrderResponse newCustomerOrderResponse = this.restTemplate.postForObject((theUri+"/customer_token"),entityCustomerOrder, CustomerOrderResponse.class);
+    //     // getForObject(<URI>,<TheReturnClass>)
+    //     CustomerOrderResponse oldCustomerOrderResponse = this.restTemplate.getForObject((theUri+"/customer_token?newCustomerId=123"),CustomerOrderResponse.class);
+    //     assertEquals(newCustomerOrderResponse.getCustomerId(),oldCustomerOrderResponse.getCustomerId());
+    //     assertEquals(newCustomerOrderResponse.getTokens(),oldCustomerOrderResponse.getTokens());
+	// }
 }
