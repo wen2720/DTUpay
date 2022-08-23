@@ -1,4 +1,6 @@
 /DevTestCICDDep
 /target
 /photo
-data/test.json
+/data
+
+/src/main/resources/
