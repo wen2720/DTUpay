@@ -1,10 +1,11 @@
-// package dtupay;
+package dtupay;
 
-// import org.springframework.data.jpa.repository.JpaRepository;
-// import org.springframework.data.repository.CrudRepository;
-// import org.springframework.http.ResponseEntity;
-// import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Repository;
 
-// import dtupay.Tokens;
-// public interface CustomerTokenRepository extends CrudRepository<Tokens, Long> {
-// }
+import dtupay.Tokens;
+@Repository
+public interface CustomerTokenRepository extends JpaRepository<Tokens, Long> {
+}

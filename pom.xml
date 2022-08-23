@@ -18,37 +18,39 @@
     <pluginManagement>
     <plugins>
       <!-- maven java compiler, Java 9 or later -->
-        <!--
+        <!-- lambda expressions are not supported in -source 7
+[ERROR]   (use -source 8 or higher to enable lambda expressions) -->
+    <!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
 
           <configuration>
-                <source>1.8</source>
-                <target>1.8</target>
+                <source>1.7</source>
+                <target>1.7</target>
         </configuration>
         
       </plugin>
       -->
-      <!--
+      <!--     -->
       <plugin>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
-      -->
+ 
 
     </plugins>
     </pluginManagement>
 
   </build>
 
-  <!-- 
+  <!--  
     <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-  -->
+ -->
   
   <dependencies>
     <!-- comes with maven.zip -->
@@ -94,13 +96,13 @@
         <version>2.2</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa 
+    
+    -->
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-data-jpa</artifactId>
         <version>2.7.3</version>
     </dependency>
-    -->
-    
 
   </dependencies>
 </project>
