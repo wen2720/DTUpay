@@ -1,15 +1,4 @@
 package dtupay;
-// ex1.1 hello world, spring boot beginner package
-import dtupay.CustomerTokenRepostitory;
-import org.springframework.boot.*;
-import org.springframework.boot.autoconfigure.*;
-import org.springframework.stereotype.*;
-import org.springframework.web.bind.annotation.*;
-import java.util.concurrent.atomic.AtomicLong;
-// ex1.2 @QueryParam, GetMapping and MVC controller
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 // ex1.3 Java QR code example
 import java.io.File;
@@ -25,15 +14,6 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
-// ex1.5 java uniquie ID example
-import java.util.UUID;  
-
-// ex1.6 more complicated POJO to JSON example, supported by Jackson, http status and PostMapping(POST)
-import java.util.ArrayList;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.bind.annotation.PostMapping;
-
 // ex.1.8 Database Postgre sql
 import java.text.StringCharacterIterator;
 import java.text.CharacterIterator;
@@ -48,39 +28,46 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.ResultSet;
 
-// ex.1.9 JPA sring Crud Repository
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.slf4j.Logger;	// for loggin server events
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;	// mark the method with returning certain class
-import org.springframework.context.annotation.Configuration; // @Beans are declared in the @Configuration class
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
-import org.springframework.stereotype.Repository;
-import java.util.List;
-
-// REST API, spring framework, MVC controller
-@RestController
-@EnableAutoConfiguration
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.PostMapping;
 @SpringBootApplication
 public class App {
-	// private static IDataBase customerTokenMap = new CustomerTokenMap();																				// allocate memory in fileld
-	// private static IDataBase<HashMap<String,ArrayList<String>>> customerTokenMap = new CustomerTokenMap<>(new HashMap<String,ArrayList<String>>());	// allocaate memory by constructor in jection
-	// private static Map<String,ArrayList<String>> customerTokenMap = new HashMap<>();
-	private CustomerTokenRepostitory theRepository;
+	public static void main(String[] args) throws Exception {
+		SpringApplication.run(App.class, args);
+    }
+}
 
-	@GetMapping("/")
-    String home() {
+@RestController
+class AppController {
+	// private static Map<String,ArrayList<String>> customerTokenMap = new HashMap<>();
+	//@Autowired
+	// private CustomerTokenService customerTokenService;
+    //public AppController(CustomerTokenService service) {
+    //    customerTokenService = service;
+    //}
+
+	//private CustomerTokenService theRepository;
+	@GetMapping("/") 
+	public String home() {
         return "Hello World!";
     }
-	@PostMapping("/simplePostFromServer") 
-	String postWelcomMessage(@RequestBody String name){
-		return "Welcome, " + name + " to the server.";
-	}
-	// api with map 
+
+	// @PostMapping("/tokens")
+	// void postTokens(@RequestBody CustomerOrder order) {
+	// 	customerTokenService.saveTokens(order);
+	// }
+
 	// @GetMapping("/customer_token")
 	// CustomerOrderResponse checkOrder(@RequestParam String newCustomerId) {
 	// 	CustomerOrderResponse newCustomerOrderResposnse = null;
@@ -95,10 +82,7 @@ public class App {
 	// 	}
 	// 	return newCustomerOrderResposnse;
 	// }
-	@GetMapping("/customer_token")
-	List<CustomerOrderResponse> checkAllCustomerToken() {
-		return theRepository.findAll();
-	}
+	
 	// e.g. /token?customerId={ID}&noToken={TOKEN}
 	//@RequestMapping(value = "/token", method = RequestMethod.POST)
 	// @PostMapping("/customer_token")
@@ -130,15 +114,8 @@ public class App {
 	// 	return newCustomerOrderResposnse;
 	// }
 	
-	// REST constoller entry point
-	public static void main(String[] args) throws Exception {
-
-		// PostgreConnection newPostgreConnection = new PostgreConnection(new PostgreUrlAndCredential(new Properties()));
-						
-		// App newApp = new App(new CustomerOrderMap());  // Parameter 0 of constructor in dtupay.App required a bean of type 'dtupay.IDatabase' that could not be found.
-		SpringApplication.run(App.class, args);
-    }
 }
+
 
 // QRCode class, later could be seperated to other java file if manual test passes.
 // Test passed, can be used in client device for generating QRcode the data recieved from server.
@@ -182,83 +159,30 @@ class QRCode {
 	}
 }
 
-// Data model too form HTTP POST Request body
-// ex1.6 http POST /token?customerId={}&&no={}  // client side class
-class CustomerOrder {
-	private final String customerId;
-	private final String noToken;
-	public CustomerOrder (String id, String number) {
-		customerId = id;
-		noToken = number;
+
+
+class CustomerOrderResponse {
+	private Long customerId;
+	private String tokens;
+	public CustomerOrderResponse(Long id, String tokens){
+		this.customerId = id;
+		this.tokens = tokens;
 	}
-	public String getCustomerId() {
+	public Long getCustomerId() {
 		return customerId;
 	}
-	public int getNoToken() {
-		return Integer.parseInt(noToken);
+	public String getTokens() {
+		return tokens;
+	}
+	public void setCustomerId(long id) {
+		this.customerId = id;
+	}
+	public void setTokens(String tokens) {
+		this.tokens = tokens;
 	}
 }
 
-// Response class for HTTP POST
-// Serverside response data 
-// class CustomerOrderResponse {
-// 	private final String customerId;
-// 	private final ArrayList<String> tokens;
-// 	CustomerOrderResponse (String id, ArrayList<String> list){
-// 		customerId = id;
-// 		tokens = list;
-// 	}
-// 	public String getCustomerId() {
-// 		return customerId;
-// 	}
-// 	public ArrayList<String> getTokens() {
-// 		return tokens;
-// 	}
-// }
-@Entity
-@Table(name = "customer_token")
-class CustomerOrderResponse {
-	@Id
-	private String customerId;
-	private String[] tokens;
-	CustomerOrderResponse() {}
-	CustomerOrderResponse (String id, String[] list){
-		customerId = id;
-		tokens = list;
-	}
-	public String getCustomerId() {
-		return customerId;
-	}
-	public String[] getTokens() {
-		return tokens;
-	}
-}
-// @Repository
-interface CustomerTokenRepostitory extends JpaRepository<CustomerOrderResponse, String> {
-}
-// DataSet classes; interface, abstract class and inheritance
-// interface = Class<TypeVariable>
-// interface IDataBase<T> {
-// 	public T getDataBase();
-// 	public boolean containsKey();
-// }
-// // abstract class DataBase<T> implements IDataBase<T> {
-// // }
-// // Database, hashmap implementation
-// class CustomerTokenMap<T> implements DataBase<T> {
-// 	private T dataset;	//hides constructor parameter, or function parameter
-// 	public CustomerTokenMap(T dataset) {
-// 		this.dataset = dataset;
-// 	}
-// 	public T getDataBase() {
-// 		return this.dataset;
-// 	}
-// }
 // Database, PostgreSQL implementation
-interface IDataBaseConnection {
-}
-abstract class DataBaseConnection implements IDataBaseConnection {
-}
 class PostgreUrlAndCredential {
 	private static String postgreUrl;
 	private static Properties postgreCredentialProperties;
@@ -276,8 +200,7 @@ class PostgreUrlAndCredential {
 	}
 
 	private void setPostgreUrlAndProperties(String credentialPath) throws Exception {
-		// // The following program is for connecting postgres with default conredential file, has been test in the main function
-		// // Properties postgreCredentialProperties = new Properties()					
+		// The following program is for connecting postgres with default conredential file, has been test in the main function
 		String postgreCredentialPath = System.getenv(credentialPath);									// get windows system enviroment entry value by variable, my path
 		CharacterIterator characterSequence = new StringCharacterIterator(postgreCredentialPath);	// string to collection of characters
 		postgreCredentialPath = "";																// empty place holder 
@@ -289,7 +212,6 @@ class PostgreUrlAndCredential {
 			}
 			characterSequence.next();
 		}
-		// // System.out.println("resolved windows path for java : "  + postgreCredentialPath);
 		Path postgreCredentialFilePath = Path.of(postgreCredentialPath + "\\pgpass.conf");					// pgpass.conf default postgre credential file name. construct path regarding the file system 
 		String pgpassFileContent = Files.readString(postgreCredentialFilePath);								// readfirst line of the string, quick version should be improved.  Only the content [hostname:port:database:username:password] is allowed, # is the ignore symbol 
 		String[] pgpassElements = pgpassFileContent.split(":",5);
@@ -299,20 +221,6 @@ class PostgreUrlAndCredential {
 		postgreUrl = "jdbc:postgresql://" + pgpassElements[0] + ":" + pgpassElements[1] + "/" + pgpassElements[2];															// constructing entries
 		postgreCredentialProperties.setProperty("user", pgpassElements[3]);
 		postgreCredentialProperties.setProperty("password", pgpassElements[4]);
-
-		// data base connection
-		// // Connection newConnection = DriverManager.getConnection(postgreUrl, props);
-
-		// Statement newStatement = newConnection.createStatement();
-		// // Query		
-		// // ResultSet newResultSet = newStatement.executeQuery("SElECT * FROM ordertoken");
-		// // while (newResultSet.next()){
-		// // 	System.out.print("a row was returned.");
-		// // }
-		// // newResultSet.close();
-		// // Create Table
-		// newStatement.execute("CREATE TABLE IF NOT EXISTS customer_tokens (customer_id VARCHAR(50) PRIMARY KEY, token0 VARCHAR(100) NOT NULL, token1 VARCHAR(100) NOT NULL, token2 VARCHAR(100) NOT NULL, token3 VARCHAR(100) NOT NULL, token4 VARCHAR(100) NOT NULL)");
-		// newStatement.close();
 	}
 		
 }

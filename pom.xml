@@ -18,22 +18,38 @@
     <pluginManagement>
     <plugins>
       <!-- maven java compiler, Java 9 or later -->
+        <!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
+
+          <configuration>
+                <source>1.8</source>
+                <target>1.8</target>
+        </configuration>
+        
       </plugin>
+      -->
+      <!--
       <plugin>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
+      -->
+
     </plugins>
     </pluginManagement>
+
   </build>
-  <properties>
+
+  <!-- 
+    <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
+  -->
+  
   <dependencies>
     <!-- comes with maven.zip -->
     <dependency>
@@ -77,17 +93,14 @@
         <artifactId>javax.persistence-api</artifactId>
         <version>2.2</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa -->
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa 
     <dependency>
-        <groupId>org.springframework.data</groupId>
-        <artifactId>spring-data-jpa</artifactId>
-        <version>2.7.2</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+        <version>2.7.3</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-rest-core -->
-    <dependency>
-        <groupId>org.springframework.data</groupId>
-        <artifactId>spring-data-rest-core</artifactId>
-        <version>3.7.2</version>
-    </dependency>
+    -->
+    
+
   </dependencies>
 </project>
