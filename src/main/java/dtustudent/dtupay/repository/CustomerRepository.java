@@ -4,7 +4,7 @@ package dtustudent.dtupay.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 // Required java class, to match object to the database table
-import dtustudent.dtupay.model.Token;
+import dtustudent.dtupay.model.Customer;
 
-public interface TokenRepository extends JpaRepository<Token, String> {
+public interface CustomerRepository extends JpaRepository<Customer, String> {
 }
