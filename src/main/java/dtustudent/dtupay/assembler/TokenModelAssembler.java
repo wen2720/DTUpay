@@ -12,7 +12,7 @@ import org.springframework.hateoas.server.RepresentationModelAssembler;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-// The class contains the business logic of the application.
+// TokenModelAssembler -> Token -> EntityModel<Token>
 @Component
 public class TokenModelAssembler implements RepresentationModelAssembler<Token,EntityModel<Token>> {
     
@@ -20,7 +20,9 @@ public class TokenModelAssembler implements RepresentationModelAssembler<Token,E
     public EntityModel<Token> toModel(Token token) {
         // Link link = linkTo(methodOn(TokenController.class).getToken(id)).withSelfRel();
         // return EntityModel.of(token,link);
-        return EntityModel.of(token,linkTo(methodOn(TokenController.class).getToken(token.getId())).withSelfRel());
+        // return EntityModel.of(token,linkTo(methodOn(TokenController.class).getToken(token.getId())).withSelfRel());
+        return EntityModel.of(token,
+            linkTo(methodOn(TokenController.class).getToken(token.getId())).withSelfRel());
     }
 
 }
