@@ -53,11 +53,11 @@ public class CustomerController {
 		Customer customer = customerRepository.findById(id).orElseThrow(() -> new CustomerNotFoundException(id));
 		if (tokenRepository.existsByCustomerId(customer.getId())) {
 			return EntityModel.of(customer, 
-				linkTo(methodOn(CustomerController.class).getCustomer(customer.getId())).withSelfRel(),
-				linkTo(methodOn(CustomerController.class).getCustomerToken(customer.getId())).withRel("tokens"));
+				linkTo(methodOn(CustomerController.class).getCustomer(customer.getId())).withSelfRel());
 		} else {
 			return EntityModel.of(customer, 
-				linkTo(methodOn(CustomerController.class).getCustomer(customer.getId())).withSelfRel());
+				linkTo(methodOn(CustomerController.class).getCustomer(customer.getId())).withSelfRel(),
+				linkTo(methodOn(CustomerController.class).getCustomerToken(customer.getId())).withRel("tokens"));
 		}
 		
 	}
@@ -66,18 +66,25 @@ public class CustomerController {
 	@PostMapping("/customer/{id}/token")
     public ResponseEntity<?> getCustomerToken(@PathVariable String id) {  
 		Customer customer = customerRepository.findById(id).orElseThrow(() -> new CustomerNotFoundException(id));
-		List<Link> tokenLinks= new ArrayList<Link>();
-		for (int i = 0; i<4; i++) {
-			Token token = new Token(id);
-			tokenRepository.save(token);
-			tokenLinks.add(linkTo(methodOn(CustomerController.class).getToken(token.getId())).withRel("token"));
+		if (tokenRepository.existsByCustomerId(customer.getId())) { 
+			EntityModel<Customer> customerEntityModel = 
+				EntityModel.of(customer, 
+					linkTo(methodOn(CustomerController.class).getCustomer(customer.getId())).withSelfRel());
+			return ResponseEntity.created(customerEntityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(customerEntityModel);
+		} else {
+			List<Link> tokenLinks= new ArrayList<Link>();
+				for (int i = 0; i<4; i++) {
+				Token token = new Token(id);
+				tokenRepository.save(token);
+				tokenLinks.add(linkTo(methodOn(CustomerController.class).getToken(token.getId())).withSelfRel());
+			}
+			// List<Token> tokens = tokenRepository.findAllByCustomerId(id);
+			EntityModel<Customer> customerEntityModel = 
+				EntityModel.of(customer, 
+					tokenLinks
+			);
+			return ResponseEntity.created(customerEntityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(customerEntityModel);
 		}
-		// List<Token> tokens = tokenRepository.findAllByCustomerId(id);
-		EntityModel<Customer> customerEntityModel = 
-			EntityModel.of(customer, 
-				tokenLinks
-		);
-		return ResponseEntity.created(customerEntityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(customerEntityModel);
 	}
 
 	// token link
