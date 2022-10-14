@@ -1,2 +1,2 @@
 # Spring freame work basics - RESTful API
-The source code contains the deployment of RESTful API to connection PostgreSQL.
+The source code contains the deployment of RESTful API, JpaRepository and EntityModel. The invocation of the RESTful API returns the representation of the model with avaliable links.
