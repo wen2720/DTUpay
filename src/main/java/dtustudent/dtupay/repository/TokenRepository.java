@@ -15,4 +15,5 @@ import dtustudent.dtupay.model.Token;
 
 public interface TokenRepository extends JpaRepository<Token, String> {
     List<Token> findAllByCustomerId(String customerId);
+    boolean existsByCustomerId(String customerId);
 }
