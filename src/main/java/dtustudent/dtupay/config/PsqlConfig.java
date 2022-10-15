@@ -21,7 +21,7 @@ public class PsqlConfig {
   CommandLineRunner initDatabase(CustomerRepository customerRepo, TokenRepository tokenRepo) {
 
     return args -> {
-      log.info("Preloading " + customerRepo.save(new Customer("Mingwen")));
+      log.info("Preloading " + customerRepo.save(new Customer("Aiden")));
       //log.info("Preloading " + tokenRepo.save(new Token("f8b580a7-c7ec-4773-83c4-0d5cb4cb93aa")));
     };
   }
